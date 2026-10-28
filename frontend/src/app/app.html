@@ -2,5 +2,16 @@
   <p class="eyebrow">Информационные системы и технологии</p>
   <h1>Сервис заявок ИТ-отдела</h1>
   <!-- TODO(LR1-02): навигация /home, /tickets, /about через routerLink. -->
+   <nav aria-label="Основная навигация">
+  <a routerLink="/home"
+     routerLinkActive="active"
+     ariaCurrentWhenActive="page">Главная</a>
+  <a routerLink="/tickets"
+     routerLinkActive="active"
+     ariaCurrentWhenActive="page">Заявки</a>
+  <a routerLink="/about"
+     routerLinkActive="active"
+     ariaCurrentWhenActive="page">О системе</a>
+</nav>
 </header>
 <main><router-outlet /></main>
