@@ -34,7 +34,7 @@ try:
     cur.execute(f"CREATE DATABASE `{args.database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
     cur.execute(f"USE `{args.database}`")
     for file in ("schema.sql", "seed.sql"):
-        content = "\n".join(line for line in Path(__file__).with_name(file).read_text().splitlines()
+        content = "\n".join(line for line in Path(__file__).with_name(file).read_text(encoding="utf-8").splitlines()
                             if not line.strip().startswith("--"))
         for sql in content.split(";"):
             if sql.strip(): cur.execute(sql)

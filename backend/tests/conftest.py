@@ -24,7 +24,7 @@ def app(db_config):
     for name in ("ticket_events", "tickets", "equipment"):
         cursor.execute("DROP TABLE IF EXISTS " + name)
     for file in ("schema.sql", "seed.sql"):
-        source = "\n".join(line for line in (directory/file).read_text().splitlines()
+        source = "\n".join(line for line in (directory/file).read_text(encoding="utf-8").splitlines()
                            if not line.strip().startswith("--"))
         for statement in source.split(";"):
             if statement.strip(): cursor.execute(statement)

@@ -76,3 +76,13 @@ def test_transaction_rollback_when_event_fails(app, client, monkeypatch):
     old = client.get('/api/tickets/1').json
     assert client.patch('/api/tickets/1', json={'status':'closed'}).status_code == 500
     assert client.get('/api/tickets/1').json == old
+
+def test_status_and_search_together(client):
+    result = client.get('/api/tickets', query_string={'status': 'closed', 'q': 'сети'}).json
+    assert [item['id'] for item in result] == [3]
+    result = client.get('/api/tickets', query_string={'status': 'in_progress', 'q': 'сети'}).json
+    assert result == []
+    result = client.get('/api/tickets', query_string={'status': 'new', 'q': 'КОМПЬЮТЕР'}).json
+    assert [item['id'] for item in result] == [1]
+    result = client.get('/api/tickets', query_string={'status': 'closed', 'q': 'компьютер'}).json
+    assert result == []
