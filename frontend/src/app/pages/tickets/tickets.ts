@@ -1,29 +1,54 @@
-import { Component, computed, signal } from '@angular/core';
-import { DEMO_TICKETS } from '../../data/demo-tickets';
-import { TicketStatus } from '../../models/ticket';
-import { filterTickets, TicketFilter } from '../../features/tickets/filter-tickets';
-
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { DatePipe } from '@angular/common';
+import { Subscription } from 'rxjs';
+import { TicketsApi, errorMessage } from '../../services/tickets-api';
+import { Ticket, STATUS_LABELS } from '../../models/ticket';
 @Component({
   selector: 'app-tickets',
-  standalone: true,
+  imports: [RouterLink, FormsModule, DatePipe],
   templateUrl: './tickets.html',
-  styleUrl: './tickets.css',
 })
-export class Tickets {
-  readonly tickets = signal(DEMO_TICKETS);
-  readonly filter = signal<TicketFilter>('all');
-  readonly search = signal('');
-  // Соединение состояния с чистой функцией уже подготовлено.
-  readonly visibleTickets = computed(() => filterTickets(this.tickets(), this.filter(), this.search()));
-  readonly statusLabels: Record<TicketStatus, string> = {
-    new: 'Новая', in_progress: 'В работе', closed: 'Закрыта',
-  };
-
-  setFilter(mode: TicketFilter): void {
-    this.filter.set(mode);
+export class Tickets implements OnInit, OnDestroy {
+  private readonly api = inject(TicketsApi);
+  private request?: Subscription;
+  readonly tickets = signal<Ticket[]>([]);
+  readonly loading = signal(true);
+  readonly error = signal('');
+  readonly mode = signal('all');
+  readonly labels = STATUS_LABELS;
+  readonly filters = [
+    { id: 'all', label: 'Все' },
+    { id: 'open', label: 'Незакрытые' },
+    { id: 'new', label: 'Новые' },
+    { id: 'in_progress', label: 'В работе' },
+    { id: 'closed', label: 'Закрытые' },
+  ];
+  query = '';
+  ngOnInit() {
+    this.load();
   }
-
-  setSearch(value: string): void {
-    this.search.set(value);
+  ngOnDestroy() {
+    this.request?.unsubscribe();
+  }
+  setFilter(mode: string) {
+    this.mode.set(mode);
+    this.load();
+  }
+  load() {
+    this.request?.unsubscribe();
+    this.loading.set(true);
+    this.error.set('');
+    this.request = this.api.list(this.query, this.mode()).subscribe({
+      next: (data) => {
+        this.tickets.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set(errorMessage(err));
+        this.loading.set(false);
+      },
+    });
   }
 }
